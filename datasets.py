@@ -72,7 +72,7 @@ class NCFData(data.Dataset):
                 negs_l.append(np.random.choice(self.negs[u], (self.num_neg,)))
             self.neg_data = np.stack(negs_l)
             self.neg_sampled = True
-            print("neg ex", self.neg_data[0])
+            #print("neg ex", self.neg_data[0])
                   
 
     def __len__(self):

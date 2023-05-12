@@ -7,7 +7,29 @@ from tqdm import tqdm
 import os
 DEBUG=os.getenv("DEBUG")
 
-def _count_parameters_(model):
+class EarlyStop:
+    def __init__(self, num_steps, ascending=False):
+        self.num_steps = num_steps
+        self.ascending = ascending
+        self.num_evals = 0
+        self.best_eval_num = 0
+        if ascending:
+            self.best_eval = -1000000
+        else:
+            self.best_eval = +1000000
+
+    def step(self, value):
+        self.num_evals = self.num_evals + 1
+        if (self.ascending and value > self.best_eval) or (not self.ascending and value < self.best_eval):
+            self.best_eval_num = self.num_evals
+            self.best_eval = value
+            return False
+        else:
+            if (self.num_evals - self.best_eval_num ) > self.num_steps:
+                return True
+        return False
+
+def count_parameters(model):
     total = 0
     for p in model.parameters():
         if p.requires_grad:
@@ -143,4 +165,14 @@ def word_to_indices(word, max_words=80):
 
 #
 #
+
+if __name__ == '__main__':
+    ea = EarlyStop(2, False)
+    values = [0.1, 0.11, 0.09, 0.12, 0.11, 0.11, 0.11, 0.11, 0.10, 0.09]
+    for v in values:
+        c = ea.step(v)
+        print(v)
+        if c :
+            break
+
 #

@@ -9,7 +9,9 @@ import fair
 
 DATASETS = [
     "Gowalla_m1",
+    "Gowalla_100_m1",
     "Goodreads_100_m1",
+    "AmazonProducts_100_m1",
     "debug_m1",
 ]
 
@@ -50,6 +52,7 @@ def parse_args():
 
     parser.add_argument("--dataset", type=str, required=True, choices=DATASETS)
     parser.add_argument("--fair_compressions", type=str, required=False, default=None)
+    parser.add_argument("--central_compression", type=str, required=False, default=None)
     parser.add_argument(
         "--reg_lambda",
         type=float,
@@ -89,7 +92,7 @@ def parse_args():
     parser.add_argument(
         "--num_neg",
         type=int,
-        default=10,
+        default=1,
         help="num_neg sampled for each positive (default: {:d})".format(10),
     )
     parser.add_argument(

@@ -10,56 +10,32 @@ from sklearn.metrics import mean_squared_error as mse
 from sklearn.metrics import ndcg_score
 
 import concurrent.futures  as futures
+from util import *
 
 from model import NCF, MF, NCFUser
 
-def evaluate(model, train_loader, test_loader, total_items, device, user_batch=10, full=False):
+def get_compression(cmp_str):
+    '''
+        helper to give concise input for compression config
+    '''
+    if cmp_str.startswith('2:'):
+        x = cmp_str.split(':')[1]
+        power = int(x)
+    return 1.0/2**power
 
-    with torch.no_grad():
-        all_items = torch.from_numpy(np.arange(total_items)).to(device).long()
-        zeros_tensor = torch.zeros(total_items, device=device, dtype=torch.int64)
+def get_model(args, total_users, total_items, compression, seed):
+    ''' create a compressable model from args'''
+    model = None
+    if args.model == "NCF":
+        if compression < 1.0:
+            model = NCFUser(total_users, total_items, args.emb_dim, args.ncf_layers, args.ncf_dropout, 
+                        compression, seed)
+        else:
+            model = NCF(total_users, total_items, args.emb_dim, args.ncf_layers, args.ncf_dropout)
+    else:
+        raise NotImplementedError
+    return model
 
-        users = test_loader.dataset.unique_users
-        if not full:
-            users = users[:user_batch]
-        ndcgs = []
-        topk = []
-
-        batches = (len(users) + user_batch - 1) // user_batch
-
-        for i in tqdm(range(batches)):
-            users_batch = torch.from_numpy(users[i*user_batch:(i+1)*user_batch]).to(device).long().reshape(-1,1)
-            user_tensor = zeros_tensor + users_batch
-            items_tensor = all_items.repeat((users_batch.numel(),1))
-            fshape = user_tensor.shape
-
-            scores = np.array(model(user_tensor.reshape(-1), items_tensor.reshape(-1)).cpu())
-            scores = scores.reshape(*fshape)
-            
-            mask = np.zeros(scores.shape)
-            target = np.zeros(scores.shape)
-
-            for j in range(users_batch.numel()):
-                u = users[i*user_batch:(i+1)*user_batch][j]
-                train_items = train_loader.dataset.pos_items[u]
-                test_items = test_loader.dataset.pos_items[u]
-                # mask the train items
-                scores[j][train_items] = -10000
-                target[j][test_items] = 1
-            
-            # compute metrics
-            ndgc = ndcg_score(target, scores, k=20)
-            #meanret = np.mean(target[np.argsort(scores)[-20:]])
-            ndcgs.append(ndgc)
-            #topk.append(meanret)
-
-        print("[",full,"]Evaluation: ndgc:", np.mean(ndcgs))
-        
-        
-        
-    
-    
-    
 
 def central(args):
     print(args)
@@ -92,7 +68,10 @@ def central(args):
         model = MF(total_users, total_items, args.emb_dim)
     elif args.model == "NCFU":
         model = NCFUser(total_users, total_items, args.emb_dim, args.ncf_layers, args.ncf_dropout, 0.5, 2023)
+
+    model = get_model(args, total_users, total_items, get_compression(args.central_compression), args.seed)
     print(model)
+    print("count of parameters", count_parameters(model))
 
     torch.manual_seed(10101)
     np.random.seed(10111)
@@ -102,12 +81,14 @@ def central(args):
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learn_rate)
 
+    earlystop = EarlyStop(15, True)
     print("epochs", args.T * args.E)
-    for epoch in range(args.T*args.E):
+    for epoch in tqdm(range(args.T*args.E)):
+        model = model.to(device)
         model.train()
         losses = []
         norms = []
-        for batch_idx, (users, pos, neg) in tqdm(enumerate(full_train_loader)):
+        for batch_idx, (users, pos, neg) in enumerate(full_train_loader):
             model.zero_grad()
             loss1, loss2 = model.bpr_loss(torch.LongTensor(users).cuda(), torch.LongTensor(pos).cuda(), torch.LongTensor(neg).cuda())
             loss = loss1 + args.reg_lambda * loss2
@@ -115,8 +96,14 @@ def central(args):
             optimizer.step()
             losses.append(float(loss1.detach().cpu()))
             norms.append(float(loss2.detach().cpu()))
-        if epoch > 0 and epoch % 1 == 0:
-            evaluate(model, full_train_loader, full_test_loader, total_items, device)
-            if epoch % args.eval_every == 0:
-                evaluate(model, full_train_loader, full_test_loader, total_items, device, full=True)
-        print(epoch,  "-->", np.mean(losses), np.mean(norms))
+        #if epoch > 0 and epoch % 1 == 0:
+        #    evaluate(model, full_train_loader, full_test_loader, total_items, device)
+        if epoch % args.eval_every == 0:
+            server_ndcg = evaluate(model, full_train_ds, full_test_ds, 
+                      total_items, device, user_batch=10, full=True)
+            print("\n[",epoch,"/",args.T*args.E, "ndcg",server_ndcg, flush=True)
+            if earlystop.step(server_ndcg):
+                  print("Early Stop Triggered")
+                  break
+        if DEBUG:
+            print(epoch,  "-->", np.mean(losses), np.mean(norms))

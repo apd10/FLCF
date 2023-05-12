@@ -10,11 +10,10 @@ from FakeRoast.FedOrchestrator import FedOrchestrator
 import pdb
 
 class Client:
-    def __init__(self, user_id, is_compressed, compression, device,
+    def __init__(self, user_id, compression, device,
                 full_train_dataset, full_test_dataset, args):
         super().__init__()
         self.compression = compression
-        self.is_compressed = is_compressed
         if device == -1:
             dev = 'cpu'
         else:  
