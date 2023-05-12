@@ -114,6 +114,46 @@ class NCF(nn.Module):
         pdb.set_trace()
     return loss, reg_loss
 
+class NCFUser(NCF):
+  def __init__(self, user_num, item_num, factor_num, num_layers,
+          dropout, compression, compression_seed):
+    super(NCFUser, self).__init__(user_num, item_num, factor_num, num_layers, dropout)
+
+    self.compression_seed = compression_seed
+    self.compression = compression
+
+    self.embed_item_MLP = FakeRoastEmbedding(
+                 num_embeddings=self.embed_item_MLP.num_embeddings,
+                 embedding_dim=self.embed_item_MLP.embedding_dim,
+                 is_global=False,
+                 weight=None,
+                 init_scale=None,
+                 compression=compression,
+                 padding_idx=self.embed_item_MLP.padding_idx,
+                 max_norm=self.embed_item_MLP.max_norm,
+                 norm_type=self.embed_item_MLP.norm_type,
+                 scale_grad_by_freq=self.embed_item_MLP.scale_grad_by_freq,
+                 sparse=False,
+                 seed = compression_seed,
+                 test = False,
+                 hashmode = "random")
+
+    self.embed_item_GMF = FakeRoastEmbedding(
+                 num_embeddings=self.embed_item_GMF.num_embeddings,
+                 embedding_dim=self.embed_item_GMF.embedding_dim,
+                 is_global=False,
+                 weight=None,
+                 init_scale=None,
+                 compression=compression,
+                 padding_idx=self.embed_item_GMF.padding_idx,
+                 max_norm=self.embed_item_GMF.max_norm,
+                 norm_type=self.embed_item_GMF.norm_type,
+                 scale_grad_by_freq=self.embed_item_GMF.scale_grad_by_freq,
+                 sparse=False,
+                 seed = compression_seed*3+1,
+                 test = False,
+                 hashmode = "random")
+
 
 class MF(nn.Module):
   def __init__(self, user_num, item_num, embedding_dim):

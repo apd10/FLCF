@@ -1,5 +1,4 @@
 import torch
-from device import Device
 import numpy as np
 import time
 from datasets import *
@@ -12,16 +11,7 @@ from sklearn.metrics import ndcg_score
 
 import concurrent.futures  as futures
 
-from model import NCF, MF
-
-def _count_parameters_(model):
-    total = 0
-    for p in model.parameters():
-        if p.requires_grad:
-            total += p.numel()
-
-    return total
-
+from model import NCF, MF, NCFUser
 
 def evaluate(model, train_loader, test_loader, total_items, device, user_batch=10, full=False):
 
@@ -100,6 +90,8 @@ def central(args):
         model = NCF(total_users, total_items, args.emb_dim, args.ncf_layers, args.ncf_dropout)
     elif args.model == "MF":
         model = MF(total_users, total_items, args.emb_dim)
+    elif args.model == "NCFU":
+        model = NCFUser(total_users, total_items, args.emb_dim, args.ncf_layers, args.ncf_dropout, 0.5, 2023)
     print(model)
 
     torch.manual_seed(10101)
