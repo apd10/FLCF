@@ -52,6 +52,7 @@ def parse_args():
 
     parser.add_argument("--dataset", type=str, required=True, choices=DATASETS)
     parser.add_argument("--fair_compressions", type=str, required=False, default=None)
+    parser.add_argument("--fair_data_loss_compression", type=str, required=False, default=None)
     parser.add_argument("--central_compression", type=str, required=False, default=None)
     parser.add_argument(
         "--reg_lambda",

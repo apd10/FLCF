@@ -37,6 +37,19 @@ def count_parameters(model):
 
     return total
 
+def get_compression(cmp_str):
+    '''
+        helper to give concise input for compression config
+    '''
+    if cmp_str.startswith('2:'):
+        x = cmp_str.split(':')[1]
+        power = int(x)
+    else:
+        raise NotImplementedError
+    return 1.0/2**power
+
+
+
 def train(model, train_dataset, epochs, batch_size, args, device):
     train_loader = data.DataLoader(train_dataset, batch_size=batch_size)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learn_rate)

@@ -19,7 +19,8 @@ import copy
 
 import os
 DEBUG=os.getenv("DEBUG")
-def get_compression(user_ids, cmp_str):
+
+def get_compression_for_users(user_ids, cmp_str):
     '''
         helper to give concise input for compression config
     '''
@@ -95,8 +96,30 @@ def fair(args):
     print("#test= ", full_test_dataset.__len__())
     # get the assignments user to compression
     user_ids = full_train_dataset.unique_users
-    compressions = get_compression(user_ids, args.fair_compressions)
+    compressions = get_compression_for_users(user_ids, args.fair_compressions)
     print("#compressions#", compressions)
+
+    if args.fair_data_loss_compression is not None:
+        print("Truncation of devices")
+        print("OLD:")
+        print("users", user_ids)
+        print("compressions", compressions)
+        max_compression = get_compression(args.fair_data_loss_compression)
+        trunc_users = []
+        trunc_compressions = []
+        for i in range(len(user_ids)):
+            if compressions[i] >= max_compression:
+                trunc_users.append(user_ids[i])
+                trunc_compressions.append(compressions[i])
+
+        user_ids = trunc_users
+        compressions = trunc_compressions
+        print("NEW:")
+        print("users", user_ids)
+        print("compressions", compressions)
+                
+            
+        
 
     total_users = max(full_test_dataset.user_max, full_train_dataset.user_max) + 1
     total_items = max(full_test_dataset.item_max, full_train_dataset.item_max) + 1

@@ -14,15 +14,6 @@ from util import *
 
 from model import NCF, MF, NCFUser
 
-def get_compression(cmp_str):
-    '''
-        helper to give concise input for compression config
-    '''
-    if cmp_str.startswith('2:'):
-        x = cmp_str.split(':')[1]
-        power = int(x)
-    return 1.0/2**power
-
 def get_model(args, total_users, total_items, compression, seed):
     ''' create a compressable model from args'''
     model = None
