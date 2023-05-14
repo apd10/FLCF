@@ -11,7 +11,7 @@ from sklearn.metrics import ndcg_score
 
 import concurrent.futures  as futures
 
-from model import NCF, MF, NCFUser
+from model import NCF, MF, NCFUser, NCFUserFedHM
 from util import *
 from client import *
 from FakeRoast.FedOrchestrator import FedOrchestrator
@@ -51,12 +51,20 @@ def get_client_model(args, total_users, total_items, compression, seed):
     model = None
     if args.model == "NCF":
         if compression < 1.0:
-            model = NCFUser(total_users, total_items, args.emb_dim, args.ncf_layers, args.ncf_dropout, 
+            if args.fair_use_fedhm:
+                model =   NCFUserFedHM(total_users, total_items, args.emb_dim, args.ncf_layers, args.ncf_dropout, 
+                        compression, seed)
+
+            else:
+
+                model = NCFUser(total_users, total_items, args.emb_dim, args.ncf_layers, args.ncf_dropout, 
                         compression, seed)
         else:
             model = NCF(total_users, total_items, args.emb_dim, args.ncf_layers, args.ncf_dropout)
     else:
         raise NotImplementedError
+    if DEBUG:
+        print(model)
     return model
 
 

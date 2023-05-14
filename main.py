@@ -55,6 +55,7 @@ def parse_args():
     parser.add_argument("--fair_data_loss_compression", type=str, required=False, default=None)
     parser.add_argument("--central_compression", type=str, required=False, default=None)
     parser.add_argument("--fair_randomize_user", action="store_true", default=False)
+    parser.add_argument("--fair_use_fedhm", action="store_true", default=False)
     parser.add_argument(
         "--reg_lambda",
         type=float,

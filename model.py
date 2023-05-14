@@ -155,6 +155,37 @@ class NCFUser(NCF):
                  hashmode = "random")
 
 
+
+class NCFUserFedHM(NCF): # low rank repreesentation of embeddings
+  def __init__(self, user_num, item_num, factor_num, num_layers,
+          dropout, compression, compression_seed):
+    super(NCFUserFedHM, self).__init__(user_num, item_num, factor_num, num_layers, dropout)
+
+    self.compression_seed = compression_seed
+    self.compression = compression
+
+    self.embed_item_MLP = LowRankEmbedding(
+                 num_embeddings=self.embed_item_MLP.num_embeddings,
+                 embedding_dim=self.embed_item_MLP.embedding_dim,
+                 compression=compression,
+                 padding_idx=self.embed_item_MLP.padding_idx,
+                 max_norm=self.embed_item_MLP.max_norm,
+                 norm_type=self.embed_item_MLP.norm_type,
+                 scale_grad_by_freq=self.embed_item_MLP.scale_grad_by_freq,
+                 sparse=False)
+
+    self.embed_item_GMF = LowRankEmbedding(
+                 num_embeddings=self.embed_item_GMF.num_embeddings,
+                 embedding_dim=self.embed_item_GMF.embedding_dim,
+                 compression=compression,
+                 padding_idx=self.embed_item_GMF.padding_idx,
+                 max_norm=self.embed_item_GMF.max_norm,
+                 norm_type=self.embed_item_GMF.norm_type,
+                 scale_grad_by_freq=self.embed_item_GMF.scale_grad_by_freq,
+                 sparse=False)
+
+
+
 class MF(nn.Module):
   def __init__(self, user_num, item_num, embedding_dim):
     super(MF, self).__init__()
