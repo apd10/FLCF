@@ -97,6 +97,9 @@ def fair(args):
     # get the assignments user to compression
     user_ids = full_train_dataset.unique_users
     compressions = get_compression_for_users(user_ids, args.fair_compressions)
+    if args.fair_randomize_user :
+        gen = np.random.RandomState(101)
+        gen.shuffle(compressions)
     print("#compressions#", compressions)
 
     if args.fair_data_loss_compression is not None:
