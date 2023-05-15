@@ -8,7 +8,7 @@ import os
 DEBUG=os.getenv("DEBUG")
 
 class EarlyStop:
-    def __init__(self, num_steps, ascending=False):
+    def __init__(self, num_steps, ascending=False, thold_stop=None):
         self.num_steps = num_steps
         self.ascending = ascending
         self.num_evals = 0
@@ -17,15 +17,31 @@ class EarlyStop:
             self.best_eval = -1000000
         else:
             self.best_eval = +1000000
+        self.check_thold = False
+        if thold_stop is not None:
+            self.check_thold = True
+            arr = thold_stop.split(':')
+            self.thold_step = int(arr[0])
+            self.thold_value = float(arr[1])
+            
+          
 
     def step(self, value):
         self.num_evals = self.num_evals + 1
+        if self.check_thold and (self.num_evals > self.thold_step):
+            if ((self.ascending and (max(value, self.best_eval) < self.thold_value))
+                or (not self.ascending and (min(value, self.best_eval) > self.thold_value))
+                ):
+                print("THOLD CHECK HIT")
+                return True
+
         if (self.ascending and value > self.best_eval) or (not self.ascending and value < self.best_eval):
             self.best_eval_num = self.num_evals
             self.best_eval = value
             return False
         else:
             if (self.num_evals - self.best_eval_num ) > self.num_steps:
+                print("TREND CHECK HIT")
                 return True
         return False
 

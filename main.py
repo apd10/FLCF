@@ -38,6 +38,8 @@ def parse_args():
         required=True,
         help="algorithm to run: fedavg : Federated Average\n\n",
     )
+
+    parser.add_argument("--early_stop_thold", action="store", type=str, default=None)
     parser.add_argument("--model", type=str, required=False, default="NCF", choices=MODELS)
     parser.add_argument(
         "--emb_dim",
@@ -56,6 +58,7 @@ def parse_args():
     parser.add_argument("--central_compression", type=str, required=False, default=None)
     parser.add_argument("--fair_randomize_user", action="store_true", default=False)
     parser.add_argument("--fair_use_fedhm", action="store_true", default=False)
+    parser.add_argument("--fair_uniform_compression_sample", action="store_true", default=False)
     parser.add_argument(
         "--reg_lambda",
         type=float,

@@ -20,6 +20,23 @@ import copy
 import os
 DEBUG=os.getenv("DEBUG")
 
+def uniform_sample(n, k, compressions):
+    '''
+        create samples that are uniform across compressions
+    '''
+    compressions = np.array(compressions)
+
+    cts = {}
+    for c in np.unique(compressions):
+        cts[c] = np.sum(compressions == c) / n * k
+
+    sample = []
+    for c in cts.keys():
+        ids = np.argwhere(compressions == c).reshape(-1)
+        sample = sample + list(np.random.choice(ids, int(np.ceil(cts[c]))))
+    return sample
+
+
 def get_compression_for_users(user_ids, cmp_str):
     '''
         helper to give concise input for compression config
@@ -140,11 +157,15 @@ def fair(args):
     server_model = get_server_model(args, total_users, total_items)
     full_wts = FedOrchestrator.get_wts_full_single(server_model, is_global=False)
 
-    earlystop = EarlyStop(15, True)
+        
+    earlystop = EarlyStop(5, True, args.early_stop_thold)
 
     for t in tqdm(range(args.T)):
         #print("ROUND BEGIN:", t, flush=True)
-        sample = np.random.choice(np.arange(len(user_ids)), args.K)
+        if args.fair_uniform_compression_sample:
+            sample = uniform_sample(len(user_ids), args.K, compressions)
+        else:
+            sample = np.random.choice(np.arange(len(user_ids)), args.K)
         
         clients = []
         for i in range(args.K):

@@ -72,7 +72,7 @@ def central(args):
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learn_rate)
 
-    earlystop = EarlyStop(15, True)
+    earlystop = EarlyStop(5, True, args.early_stop_thold)
     print("epochs", args.T * args.E)
     for epoch in tqdm(range(args.T*args.E)):
         model = model.to(device)
