@@ -48,6 +48,13 @@ def get_compression_for_users(user_ids, cmp_str):
         for i in range(len(user_ids)):
             p = int(i * len(powers) / len(user_ids))
             compressions.append(1.0/(2**powers[p]))
+    if cmp_str.startswith('s2:'): # s2:5:1-0 # 90% is 2x and 10% is 1x
+        prop = float(cmp_str.split(':')[1])
+        x = cmp_str.split(':')[2]
+        powers = [int(a) for a in x.split('-')]
+        for i in range(len(user_ids)):
+            p = int((i / len(user_ids))**prop * len(powers))
+            compressions.append(1.0/(2**powers[p]))
     else:
         raise NotImplementedError
     return compressions
