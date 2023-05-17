@@ -40,6 +40,7 @@ def parse_args():
     )
 
     parser.add_argument("--early_stop_thold", action="store", type=str, default=None)
+    parser.add_argument("--early_trend_window", action="store", type=int, default=100)
     parser.add_argument("--model", type=str, required=False, default="NCF", choices=MODELS)
     parser.add_argument(
         "--emb_dim",

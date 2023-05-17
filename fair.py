@@ -166,7 +166,7 @@ def fair(args):
     full_wts = FedOrchestrator.get_wts_full_single(server_model, is_global=False)
 
         
-    earlystop = EarlyStop(5, True, args.early_stop_thold)
+    earlystop = EarlyStop(args.early_trend_window, True, args.early_stop_thold)
 
     for t in tqdm(range(args.T)):
         #print("ROUND BEGIN:", t, flush=True)
