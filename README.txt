@@ -1,7 +1,7 @@
 Github for FAIR: Federated Averaging in Random Subspaces submission
 
 ```
-(t5_env) apd10@yogi:~/FLCF/src  $ python3 main.py --help
+  $ python3 main.py --help
 usage: main.py [-h] --algo {fair,central} [--early_stop_thold EARLY_STOP_THOLD] [--early_trend_window EARLY_TREND_WINDOW] [--model {NCFU,NCF,MF}] [--emb_dim EMB_DIM] [--ncf_layers NCF_LAYERS]
                [--ncf_dropout NCF_DROPOUT] --dataset {Gowalla_m1,Gowalla_100_m1,Goodreads_100_m1,AmazonProducts_100_m1,debug_m1} [--fair_compressions FAIR_COMPRESSIONS]
                [--fair_data_loss_compression FAIR_DATA_LOSS_COMPRESSION] [--central_compression CENTRAL_COMPRESSION] [--fair_randomize_user] [--fair_use_fedhm] [--fair_uniform_compression_sample]
